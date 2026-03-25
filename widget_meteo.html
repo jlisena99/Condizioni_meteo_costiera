@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amalfi Coast Dashboard</title>
+<style>
+  /* --- STILE BASE --- */
+  body {
+    margin: 0;
+    padding: 0;
+    width: 519px;
+    height: 175px;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #ffffff;
+    color: #333333;
+    display: flex;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    overflow: hidden;
+  }
+
+  /* --- LE 3 COLONNE --- */
+  .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #cccccc;
+    background-color: #ffffff;
+  }
+  .panel:last-child {
+    border-right: none;
+  }
+
+  /* --- INTESTAZIONI --- */
+  .header {
+    background-color: #f4f4f4;
+    border-bottom: 1px solid #cccccc;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #000000;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* --- CONTENUTO INTERNO --- */
+  .content {
+    padding: 8px 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* --- STILE COLONNA 1: METEO --- */
+  .weather-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .weather-icon {
+    font-size: 34px;
+    line-height: 1;
+  }
+  .weather-temp {
+    font-size: 28px;
+    font-weight: bold;
+    color: #c90000;
+  }
+  .weather-desc {
+    font-size: 12px;
+    color: #555555;
+    text-align: center;
+    margin-bottom: 10px; /* Un po' più di respiro prima della riga di domani */
+  }
+  .weather-tomorrow {
+    border-top: 1px dotted #cccccc;
+    padding-top: 8px; /* Aumentato il padding per distanziare la linea */
+    font-size: 13px; /* Testo "Tomorrow:" più grande (era 11px) */
+    text-align: center;
+    color: #444444;
+  }
+  .weather-tomorrow span {
+    font-weight: bold;
+    color: #000000;
+    font-size: 15px; /* Icona e temperature ancora più grandi e leggibili */
+  }
+
+  /* --- STILE COLONNA 2: VENTO --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  td {
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  td.icon-cell {
+    width: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #666666;
+  }
+  td.label-cell {
+    color: #555555;
+  }
+  td.value-cell {
+    text-align: right;
+    font-weight: bold;
+    color: #000000;
+  }
+
+  /* --- STILE COLONNA 3: OROLOGIO E SOLE --- */
+  .live-clock-container {
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted #cccccc;
+  }
+  .live-clock {
+    font-size: 22px;
+    font-weight: bold;
+    color: #000000;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="panel">
+    <div class="header">Weather</div>
+    <div class="content">
+      <div class="weather-main">
+        <div class="weather-icon" id="w-icon">⌛</div>
+        <div class="weather-temp" id="w-temp">--°C</div>
+      </div>
+      <div class="weather-desc" id="w-desc">Waiting data...</div>
+      <div class="weather-tomorrow" id="w-tomorrow">
+        Tomorrow: <span>--</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="header">Wind</div>
+    <div class="content">
+      <table>
+        <tr>
+          <td class="icon-cell">🌬️</td>
+          <td class="label-cell">Speed</td>
+          <td class="value-cell" id="wind-speed">-- km/h</td>
+        </tr>
+        <tr>
+          <td class="icon-cell">💨</td>
+          <td class="label-cell">Gusts</td>
+          <td class="value-cell" id="wind-gusts">-- km/h</td>
+        </tr>
+        <tr>
+          <td class="icon-cell">🧭</td>
+          <td class="label-cell">Dir</td>
+          <td class="value-cell" id="wind-dir">--</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="header">Time & Sun</div>
+    <div class="content" style="padding-top: 5px;">
+      <div class="live-clock-container">
+        <div class="live-clock" id="live-clock">--:--:--</div>
+      </div>
+      <table>
+        <tr>
+          <td class="icon-cell" style="padding: 3px 0;">🌅</td>
+          <td class="label-cell" style="padding: 3px 0;">Sunrise</td>
+          <td class="value-cell" style="padding: 3px 0;" id="sunrise">--:--</td>
+        </tr>
+        <tr>
+          <td class="icon-cell" style="padding: 3px 0;">🌇</td>
+          <td class="label-cell" style="padding: 3px 0;">Sunset</td>
+          <td class="value-cell" style="padding: 3px 0;" id="sunset">--:--</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+<script>
+  // --- COORDINATE AMALFI ---
+  const lat = 40.6333;
+  const lng = 14.6028;
+  const timezone = "Europe/Rome";
+
+  // --- 1. OROLOGIO LIVE ---
+  function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-GB', { hour12: false });
+    document.getElementById('live-clock').innerText = timeString;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // --- 2. DATI SOLE ---
+  fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`)
+    .then(response => response.json())
+    .then(data => {
+      const sunrise = new Date(data.results.sunrise).toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+      const sunset = new Date(data.results.sunset).toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+      document.getElementById('sunrise').innerText = sunrise;
+      document.getElementById('sunset').innerText = sunset;
+    })
+    .catch(error => console.error("Sun API Error:", error));
+
+  // --- 3. DATI METEO E VENTO ---
+  const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=${timezone.replace("/","%2F")}`;
+
+  fetch(weatherApiUrl)
+    .then(response => response.json())
+    .then(data => {
+      const weatherMap = {
+        0: {icon: "☀️", desc: "Clear"},
+        1: {icon: "🌤️", desc: "Mainly clear"},
+        2: {icon: "⛅", desc: "Partly cloudy"},
+        3: {icon: "☁️", desc: "Overcast"},
+        45: {icon: "🌫️", desc: "Fog"}, 48: {icon: "🌫️", desc: "Fog"},
+        51: {icon: "🌧️", desc: "Drizzle"}, 53: {icon: "🌧️", desc: "Drizzle"}, 55: {icon: "🌧️", desc: "Drizzle"},
+        61: {icon: "🌧️", desc: "Rain"}, 63: {icon: "🌧️", desc: "Rain"}, 65: {icon: "🌧️", desc: "Rain"},
+        71: {icon: "🌨️", desc: "Snow"},
+        80: {icon: "🌦️", desc: "Showers"},
+        95: {icon: "⛈️", desc: "Thunderstorm"}
+      };
+      function getWeatherInfo(code) { return weatherMap[code] || weatherMap[code - (code % 10)] || {icon: "❓", desc: "N/A"}; }
+
+      // Meteo Attuale
+      const current = data.current;
+      const todayInfo = getWeatherInfo(current.weather_code);
+      document.getElementById('w-temp').innerText = Math.round(current.temperature_2m) + "°C";
+      document.getElementById('w-icon').innerText = todayInfo.icon;
+      document.getElementById('w-desc').innerText = todayInfo.desc;
+
+      // Vento Attuale
+      function getWindDir(degree) {
+        const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        return dirs[Math.round(((degree %= 360) < 0 ? degree + 360 : degree) / 45) % 8];
+      }
+      document.getElementById('wind-speed').innerText = Math.round(current.wind_speed_10m) + " km/h";
+      document.getElementById('wind-gusts').innerText = Math.round(current.wind_gusts_10m) + " km/h";
+      document.getElementById('wind-dir').innerText = getWindDir(current.wind_direction_10m);
+
+      // Previsione Domani
+      const daily = data.daily;
+      const tomorrowInfo = getWeatherInfo(daily.weather_code[1]);
+      const tomMax = Math.round(daily.temperature_2m_max[1]);
+      const tomMin = Math.round(daily.temperature_2m_min[1]);
+      document.getElementById('w-tomorrow').innerHTML = `Tomorrow: <span>${tomorrowInfo.icon} ${tomMin}° / ${tomMax}°</span>`;
+    })
+    .catch(error => console.error("Weather API Error:", error));
+
+</script>
+
+</body>
+</html>
